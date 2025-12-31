@@ -248,6 +248,39 @@ main (user's branch)
 4. User runs `--merge` to add to their project
 5. User pushes to remote when ready
 
+### Configuring Worktree Location
+
+By default, Auto Claude creates worktrees in `.worktrees/` at your project root. You can customize this location via environment variable:
+
+**Set in `.env`:**
+```bash
+WORKTREE_BASE_PATH=custom-path
+```
+
+**Examples:**
+
+Relative to project root:
+```bash
+WORKTREE_BASE_PATH=worktrees           # <project>/worktrees/
+WORKTREE_BASE_PATH=.cache/worktrees    # <project>/.cache/worktrees/
+```
+
+Absolute paths:
+```bash
+WORKTREE_BASE_PATH=/tmp/worktrees      # Unix/macOS
+WORKTREE_BASE_PATH=C:\worktrees        # Windows
+```
+
+**Common use cases:**
+- **External drive**: Keep worktrees on faster SSD while project is on network drive
+- **Disk space**: Move worktrees to drive with more free space
+- **Shared builds**: Use `../shared-worktrees` for monorepo with multiple projects
+
+**Restrictions:**
+- Cannot be inside `.auto-claude/` (prevents data loss during cleanup)
+- Cannot be inside `.git/` directory
+- Parent directory must exist and be writable
+
 ### Contributing to Upstream
 
 **CRITICAL: When submitting PRs to AndyMik90/Auto-Claude, always target the `develop` branch, NOT `main`.**

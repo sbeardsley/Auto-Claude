@@ -4,14 +4,18 @@ Git Worktree Manager - Per-Spec Architecture
 =============================================
 
 Each spec gets its own worktree:
-- Worktree path: .worktrees/{spec-name}/
+- Worktree path: <WORKTREE_BASE_PATH>/{spec-name}/ (default: .worktrees/{spec-name}/)
 - Branch name: auto-claude/{spec-name}
+
+The worktree base path is configurable via WORKTREE_BASE_PATH environment variable.
+See get_worktree_base_path() for resolution logic.
 
 This allows:
 1. Multiple specs to be worked on simultaneously
 2. Each spec's changes are isolated
 3. Branches persist until explicitly merged
 4. Clear 1:1:1 mapping: spec → worktree → branch
+5. Custom worktree locations (external drives, temp dirs, etc.)
 """
 
 import asyncio
@@ -44,6 +48,114 @@ class WorktreeInfo:
     deletions: int = 0
 
 
+def validate_worktree_path(worktree_path: Path, project_dir: Path) -> None:
+    """
+    Validate worktree base path for security and functionality.
+
+    Checks:
+    1. Not inside .auto-claude/ (would cause data loss on cleanup)
+    2. Not inside .git/ directory
+    3. Parent directory exists
+    4. Parent directory is writable
+
+    Args:
+        worktree_path: The proposed worktree base path
+        project_dir: The project root directory
+
+    Raises:
+        WorktreeError: If validation fails with a clear error message
+    """
+    # Normalize paths for comparison
+    try:
+        worktree_abs = worktree_path.resolve()
+        project_abs = project_dir.resolve()
+    except (OSError, RuntimeError) as e:
+        raise WorktreeError(
+            f"Cannot resolve worktree path: {worktree_path}\n" f"Error: {e}"
+        )
+
+    # Check 1: Not inside .auto-claude
+    auto_claude = (project_abs / ".auto-claude").resolve()
+    try:
+        if worktree_abs.is_relative_to(auto_claude):
+            raise WorktreeError(
+                f"Worktree path cannot be inside .auto-claude directory.\n"
+                f"Configured: {worktree_path}\n"
+                f"This would cause spec data loss during worktree cleanup.\n"
+                f"Choose a different WORKTREE_BASE_PATH location."
+            )
+    except (ValueError, TypeError):
+        # is_relative_to can raise ValueError on some systems
+        # If we can't determine, allow it (safer than blocking)
+        pass
+
+    # Check 2: Not inside .git
+    git_dir = project_abs / ".git"
+    try:
+        if worktree_abs.is_relative_to(git_dir):
+            raise WorktreeError(
+                f"Worktree path cannot be inside .git directory.\n"
+                f"Configured: {worktree_path}\n"
+                f"This would corrupt git repository data.\n"
+                f"Choose a different WORKTREE_BASE_PATH location."
+            )
+    except (ValueError, TypeError):
+        pass
+
+    # Check 3: Parent directory exists
+    parent = worktree_abs.parent
+    if not parent.exists():
+        raise WorktreeError(
+            f"Parent directory does not exist: {parent}\n"
+            f"Worktree path: {worktree_path}\n"
+            f"Create the parent directory first or use a different WORKTREE_BASE_PATH."
+        )
+
+    # Check 4: Parent is writable
+    if not os.access(parent, os.W_OK):
+        raise WorktreeError(
+            f"No write permission for parent directory: {parent}\n"
+            f"Worktree path: {worktree_path}\n"
+            f"Choose a different WORKTREE_BASE_PATH location with write access."
+        )
+
+
+def get_worktree_base_path(project_dir: Path) -> Path:
+    """
+    Get the configured worktree base path, with validation.
+
+    Resolution order:
+    1. WORKTREE_BASE_PATH environment variable
+    2. Default: .worktrees
+
+    Relative paths are resolved from project_dir.
+    Absolute paths are used as-is.
+
+    Args:
+        project_dir: The project root directory
+
+    Returns:
+        Validated worktree base path
+
+    Raises:
+        WorktreeError: If path validation fails
+    """
+    # Load from env var with default
+    env_path = os.getenv("WORKTREE_BASE_PATH", ".worktrees")
+
+    # Resolve relative paths from project_dir
+    path_obj = Path(env_path)
+    if path_obj.is_absolute():
+        base_path = path_obj
+    else:
+        base_path = project_dir / env_path
+
+    # Validate path
+    validate_worktree_path(base_path, project_dir)
+
+    return base_path
+
+
 class WorktreeManager:
     """
     Manages per-spec Git worktrees.
@@ -55,7 +167,7 @@ class WorktreeManager:
     def __init__(self, project_dir: Path, base_branch: str | None = None):
         self.project_dir = project_dir
         self.base_branch = base_branch or self._detect_base_branch()
-        self.worktrees_dir = project_dir / ".worktrees"
+        self.worktrees_dir = get_worktree_base_path(project_dir)
         self._merge_lock = asyncio.Lock()
 
     def _detect_base_branch(self) -> str:

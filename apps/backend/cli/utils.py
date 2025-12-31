@@ -15,6 +15,7 @@ if str(_PARENT_DIR) not in sys.path:
     sys.path.insert(0, str(_PARENT_DIR))
 
 from core.auth import get_auth_token, get_auth_token_source
+from core.worktree import get_worktree_base_path
 from dotenv import load_dotenv
 from graphiti_config import get_graphiti_status
 from linear_integration import LinearManager
@@ -82,7 +83,7 @@ def find_spec(project_dir: Path, spec_identifier: str) -> Path | None:
                     return spec_folder
 
     # Check worktree specs (for merge-preview, merge, review, discard operations)
-    worktree_base = project_dir / ".worktrees"
+    worktree_base = get_worktree_base_path(project_dir)
     if worktree_base.exists():
         # Try exact match in worktree
         worktree_spec = (

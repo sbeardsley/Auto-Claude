@@ -8,6 +8,7 @@ Supports Python, Node.js/TypeScript, Go, Rust, and Ruby frameworks.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -302,12 +303,17 @@ class FrameworkAnalyzer(BaseAnalyzer):
     def _detect_swift_framework(self) -> None:
         """Detect Swift/iOS framework and dependencies."""
         try:
+            # Get configured worktree directory name
+            worktree_path_env = os.getenv("WORKTREE_BASE_PATH", ".worktrees")
+            worktree_dir_name = Path(worktree_path_env).name
+
             # Scan Swift files for imports, excluding hidden/vendor dirs
             swift_files = []
             for swift_file in self.path.rglob("*.swift"):
-                # Skip hidden directories, node_modules, .worktrees, etc.
+                # Skip hidden directories, node_modules, worktrees, etc.
                 if any(
-                    part.startswith(".") or part in ("node_modules", "Pods", "Carthage")
+                    part.startswith(".")
+                    or part in ("node_modules", "Pods", "Carthage", worktree_dir_name)
                     for part in swift_file.parts
                 ):
                     continue

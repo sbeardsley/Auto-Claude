@@ -8,6 +8,7 @@ Provides common constants, utilities, and base functionality shared across all a
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 # Directories to skip during analysis
@@ -39,6 +40,32 @@ SKIP_DIRS = {
     ".worktrees",  # Skip git worktrees directory
     ".auto-claude",  # Skip auto-claude metadata directory
 }
+
+
+def get_skip_dirs(project_dir: Path | None = None) -> set[str]:
+    """
+    Get the set of directory names to skip during analysis.
+
+    Includes the configured worktree directory name from WORKTREE_BASE_PATH.
+
+    Args:
+        project_dir: Optional project directory for resolving worktree path
+
+    Returns:
+        Set of directory names to skip
+    """
+    skip_dirs = SKIP_DIRS.copy()
+
+    # Add configured worktree directory name
+    worktree_path_env = os.getenv("WORKTREE_BASE_PATH", ".worktrees")
+    worktree_dir_name = Path(worktree_path_env).name
+
+    # Add the configured worktree directory name (might be different from .worktrees)
+    if worktree_dir_name not in skip_dirs:
+        skip_dirs.add(worktree_dir_name)
+
+    return skip_dirs
+
 
 # Common service directory names
 SERVICE_INDICATORS = {

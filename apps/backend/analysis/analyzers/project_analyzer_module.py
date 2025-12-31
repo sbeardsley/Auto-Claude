@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .base import SERVICE_INDICATORS, SERVICE_ROOT_FILES, SKIP_DIRS
+from .base import SERVICE_INDICATORS, SERVICE_ROOT_FILES, SKIP_DIRS, get_skip_dirs
 from .service_analyzer import ServiceAnalyzer
 
 
@@ -66,7 +66,8 @@ class ProjectAnalyzer:
         for item in self.project_dir.iterdir():
             if not item.is_dir():
                 continue
-            if item.name in SKIP_DIRS or item.name.startswith("."):
+            skip_dirs = get_skip_dirs(self.project_dir)
+            if item.name in skip_dirs or item.name.startswith("."):
                 continue
 
             # Check if this directory has service root files
@@ -97,7 +98,8 @@ class ProjectAnalyzer:
                 for item in location.iterdir():
                     if not item.is_dir():
                         continue
-                    if item.name in SKIP_DIRS:
+                    skip_dirs = get_skip_dirs(self.project_dir)
+                    if item.name in skip_dirs:
                         continue
                     if item.name.startswith("."):
                         continue

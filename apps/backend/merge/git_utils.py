@@ -15,6 +15,8 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from core.worktree import get_worktree_base_path
+
 
 def find_worktree(project_dir: Path, task_id: str) -> Path | None:
     """
@@ -28,7 +30,7 @@ def find_worktree(project_dir: Path, task_id: str) -> Path | None:
         Path to the worktree, or None if not found
     """
     # Check common locations
-    worktrees_dir = project_dir / ".worktrees"
+    worktrees_dir = get_worktree_base_path(project_dir)
     if worktrees_dir.exists():
         # Look for worktree with task_id in name
         for entry in worktrees_dir.iterdir():

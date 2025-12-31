@@ -169,7 +169,8 @@ def handle_workspace_choice(
         if staging_path:
             print(highlight(f"  cd {staging_path}"))
         else:
-            print(highlight(f"  cd {project_dir}/.worktrees/{spec_name}"))
+            worktree_path = manager.worktrees_dir / spec_name
+            print(highlight(f"  cd {worktree_path}"))
 
         # Show likely test/run commands
         if staging_path:
@@ -232,7 +233,8 @@ def handle_workspace_choice(
         if staging_path:
             print(highlight(f"  cd {staging_path}"))
         else:
-            print(highlight(f"  cd {project_dir}/.worktrees/{spec_name}"))
+            worktree_path = manager.worktrees_dir / spec_name
+            print(highlight(f"  cd {worktree_path}"))
         print()
         print("When you're ready to add it:")
         print(highlight(f"  python auto-claude/run.py --spec {spec_name} --merge"))

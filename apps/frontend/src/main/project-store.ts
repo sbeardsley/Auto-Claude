@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Project, ProjectSettings, Task, TaskStatus, TaskMetadata, ImplementationPlan, ReviewReason, PlanSubtask } from '../shared/types';
 import { DEFAULT_PROJECT_SETTINGS, AUTO_BUILD_PATHS, getSpecsDir } from '../shared/constants';
 import { getAutoBuildPath, isInitialized } from './project-initializer';
+import { getWorktreeBasePath } from '../shared/utils/worktree-path';
 
 interface TabState {
   openProjectIds: string[];
@@ -264,7 +265,7 @@ export class ProjectStore {
     // NOTE FOR MAINTAINERS: Worktree tasks are only included if the spec also exists in main.
     // This prevents deleted tasks from "coming back" when the worktree isn't cleaned up.
     // Alternative behavior: include all worktree tasks (remove the mainSpecIds check below).
-    const worktreesDir = path.join(project.path, '.worktrees');
+    const worktreesDir = getWorktreeBasePath(project.path);
     if (existsSync(worktreesDir)) {
       try {
         const worktrees = readdirSync(worktreesDir, { withFileTypes: true });
@@ -643,7 +644,7 @@ export class ProjectStore {
     }
 
     // 2. Check worktrees
-    const worktreesDir = path.join(projectPath, '.worktrees');
+    const worktreesDir = getWorktreeBasePath(projectPath);
     if (existsSync(worktreesDir)) {
       try {
         const worktrees = readdirSync(worktreesDir, { withFileTypes: true });

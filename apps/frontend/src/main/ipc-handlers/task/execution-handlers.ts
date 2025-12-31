@@ -8,6 +8,7 @@ import { AgentManager } from '../../agent';
 import { fileWatcher } from '../../file-watcher';
 import { findTaskAndProject } from './shared';
 import { checkGitStatus } from '../../project-initializer';
+import { getWorktreePath } from '../../../shared/utils/worktree-path';
 import { getClaudeProfileManager } from '../../claude-profile-manager';
 
 /**
@@ -222,7 +223,7 @@ export function registerTaskExecutionHandlers(
       );
 
       // Check if worktree exists - QA needs to run in the worktree where the build happened
-      const worktreePath = path.join(project.path, '.worktrees', task.specId);
+      const worktreePath = getWorktreePath(project.path, task.specId);
       const worktreeSpecDir = path.join(worktreePath, specsBaseDir, task.specId);
       const hasWorktree = existsSync(worktreePath);
 
@@ -334,7 +335,7 @@ export function registerTaskExecutionHandlers(
       // UNLESS there's no worktree (limbo state - already merged/discarded or failed)
       if (status === 'done') {
         // Check if worktree exists
-        const worktreePath = path.join(project.path, '.worktrees', taskId);
+        const worktreePath = getWorktreePath(project.path, taskId);
         const hasWorktree = existsSync(worktreePath);
 
         if (hasWorktree) {

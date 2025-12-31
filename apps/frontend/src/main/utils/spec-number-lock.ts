@@ -17,6 +17,7 @@ import {
   readFileSync
 } from 'fs';
 import path from 'path';
+import { getWorktreeBasePath } from '../../shared/utils/worktree-path';
 
 export class SpecNumberLockError extends Error {
   constructor(message: string) {
@@ -154,7 +155,7 @@ export class SpecNumberLock {
     maxNumber = Math.max(maxNumber, this.scanSpecsDir(mainSpecsDir));
 
     // 2. Scan all worktree specs
-    const worktreesDir = path.join(this.projectDir, '.worktrees');
+    const worktreesDir = getWorktreeBasePath(this.projectDir);
     if (existsSync(worktreesDir)) {
       try {
         const worktrees = readdirSync(worktreesDir, { withFileTypes: true });

@@ -2,6 +2,7 @@ import path from 'path';
 import { existsSync, readFileSync, watchFile } from 'fs';
 import { EventEmitter } from 'events';
 import type { TaskLogs, TaskLogPhase, TaskLogStreamChunk, TaskPhaseLog } from '../shared/types';
+import { getWorktreePath } from '../shared/utils/worktree-path';
 
 /**
  * Service for loading and watching phase-based task logs (task_logs.json)
@@ -120,7 +121,7 @@ export class TaskLogService extends EventEmitter {
       worktreeSpecDir = watchedInfo[1].worktreeSpecDir;
     } else if (projectPath && specsRelPath && specId) {
       // Calculate worktree path from provided params
-      worktreeSpecDir = path.join(projectPath, '.worktrees', specId, specsRelPath, specId);
+      worktreeSpecDir = path.join(getWorktreePath(projectPath, specId), specsRelPath, specId);
     }
 
     if (!worktreeSpecDir) {
@@ -181,7 +182,7 @@ export class TaskLogService extends EventEmitter {
     // Worktree structure: .worktrees/{specId}/{specsRelPath}/{specId}/
     let worktreeSpecDir: string | null = null;
     if (projectPath && specsRelPath) {
-      worktreeSpecDir = path.join(projectPath, '.worktrees', specId, specsRelPath, specId);
+      worktreeSpecDir = path.join(getWorktreePath(projectPath, specId), specsRelPath, specId);
     }
 
     // Store watched paths for this specId

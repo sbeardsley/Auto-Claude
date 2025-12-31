@@ -12,6 +12,7 @@ import { findTaskAndProject } from './shared';
 import { parsePythonCommand } from '../../python-detector';
 import { getToolPath } from '../../cli-tool-manager';
 import { promisify } from 'util';
+import { getWorktreePath, getWorktreeBasePath } from '../../../shared/utils/worktree-path';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -1130,8 +1131,8 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Per-spec worktree path: .worktrees/{spec-name}/
-        const worktreePath = path.join(project.path, '.worktrees', task.specId);
+        // Per-spec worktree path: <WORKTREE_BASE_PATH>/{spec-name}/
+        const worktreePath = getWorktreePath(project.path, task.specId);
 
         if (!existsSync(worktreePath)) {
           return {
@@ -1240,8 +1241,8 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Per-spec worktree path: .worktrees/{spec-name}/
-        const worktreePath = path.join(project.path, '.worktrees', task.specId);
+        // Per-spec worktree path: <WORKTREE_BASE_PATH>/{spec-name}/
+        const worktreePath = getWorktreePath(project.path, task.specId);
 
         if (!existsSync(worktreePath)) {
           return { success: false, error: 'No worktree found for this task' };
@@ -1975,8 +1976,8 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Per-spec worktree path: .worktrees/{spec-name}/
-        const worktreePath = path.join(project.path, '.worktrees', task.specId);
+        // Per-spec worktree path: <WORKTREE_BASE_PATH>/{spec-name}/
+        const worktreePath = getWorktreePath(project.path, task.specId);
 
         if (!existsSync(worktreePath)) {
           return {
@@ -2053,7 +2054,7 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Project not found' };
         }
 
-        const worktreesDir = path.join(project.path, '.worktrees');
+        const worktreesDir = getWorktreeBasePath(project.path);
         const worktrees: WorktreeListItem[] = [];
 
         if (!existsSync(worktreesDir)) {

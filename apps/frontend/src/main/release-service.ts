@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import path from 'path';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { execFileSync, spawn } from 'child_process';
+import { getWorktreePath } from '../shared/utils/worktree-path';
 import type {
   ReleaseableVersion,
   ReleasePreflightStatus,
@@ -346,7 +347,7 @@ export class ReleaseService extends EventEmitter {
     const unmerged: UnmergedWorktreeInfo[] = [];
 
     // Get worktrees directory
-    const worktreesDir = path.join(projectPath, '.worktrees', 'auto-claude');
+    const worktreesDir = getWorktreePath(projectPath, 'auto-claude');
 
     if (!existsSync(worktreesDir)) {
       // No worktrees exist at all - all clear

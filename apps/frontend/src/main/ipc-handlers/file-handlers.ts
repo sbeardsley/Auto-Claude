@@ -32,6 +32,7 @@ function validatePath(filePath: string): { valid: true; path: string } | { valid
 }
 
 // Directories to ignore when listing
+// Note: .worktrees is the default worktree location (configurable via WORKTREE_BASE_PATH)
 const IGNORED_DIRS = new Set([
   'node_modules', '.git', '__pycache__', 'dist', 'build',
   '.next', '.nuxt', 'coverage', '.cache', '.venv', 'venv',
